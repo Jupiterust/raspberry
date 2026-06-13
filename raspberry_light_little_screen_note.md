@@ -1,3 +1,24 @@
+#####
+MIPI : mobile Industry processor interface
+DBI : display bus interface
+DCS L Display Comment Set
+
+.dtbo: (Device Tree Overlay) overlay:补丁: 补丁设备树
+
+mipi-dbi-spi.dtbo          →    描述硬件：SPI总线上有个屏
+                                 compatible = "panel-mipi-dbi-spi"
+                                          ↓
+                                    内核记录这个设备
+
+panel-mipi-dbi.ko           →    驱动代码，声明自己能处理
+                                 compatible = "panel-mipi-dbi-spi"
+                                          ↓
+                                    内核记录这个驱动
+
+内核发现两边 compatible 对上了  →  调用 probe()，屏幕开始工作
+
+
+#####
 # 树莓派点亮 SPI 屏完整学习笔记
 
 > 本文档复盘在 **树莓派 5 + Ubuntu 22.04(内核 6.8)** 上点亮一块 **2.0" ST7789V2 SPI 屏**的全过程。
@@ -24,7 +45,7 @@
 ## 0.5 通过例子学会这五步
 
 以本文例子 `树莓派 5 + Ubuntu 22.04 + 2.0" ST7789V2 SPI 屏` 为主线,把五步映射到实际操作:
-
+(IC : Integraded Circuit)
 - **① 摸清两端能力**:屏是 SPI 接口,IC 是 ST7789V2,分辨率 240×320;系统要有 `mipi-dbi-spi.dtbo` overlay 和 `panel-mipi-dbi` 驱动,内核要能加载这个模块。
 - **② 准备两块描述**:把屏的初始化序列写成 `panel.txt`,用 `mipi-dbi-cmd` 编译成 `/lib/firmware/panel-mipi-dbi-spi.bin`;把屏的接线和尺寸写进 `config.txt` 的 `dtoverlay=mipi-dbi-spi` 参数里。
 - **③ 告诉系统去加载**:修改 `/boot/firmware/config.txt`,启用 SPI,加载 overlay,指定 `compatible=panel-mipi-dbi-spi`,并确保固件文件放在 `/lib/firmware`。
