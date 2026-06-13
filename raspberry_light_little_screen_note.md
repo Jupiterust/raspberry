@@ -17,6 +17,8 @@ panel-mipi-dbi.ko           →    驱动代码，声明自己能处理
 
 内核发现两边 compatible 对上了  →  调用 probe()，屏幕开始工作
 
+内核源码 panel-mipi-dbi.c  →  编译  →  panel-mipi-dbi.ko
+设备树源码 mipi-dbi-spi.dts →  dtc   →  mipi-dbi-spi.dtbo
 
 #####
 # 树莓派点亮 SPI 屏完整学习笔记
@@ -50,6 +52,21 @@ panel-mipi-dbi.ko           →    驱动代码，声明自己能处理
 - **② 准备两块描述**:把屏的初始化序列写成 `panel.txt`,用 `mipi-dbi-cmd` 编译成 `/lib/firmware/panel-mipi-dbi-spi.bin`;把屏的接线和尺寸写进 `config.txt` 的 `dtoverlay=mipi-dbi-spi` 参数里。
 - **③ 告诉系统去加载**:修改 `/boot/firmware/config.txt`,启用 SPI,加载 overlay,指定 `compatible=panel-mipi-dbi-spi`,并确保固件文件放在 `/lib/firmware`。
 - **④ 分层验证**:先看 overlay/驱动是否存在,再查 `dmesg` 里是否有 `panel-mipi-dbi` probe 成功,然后确认 `/dev/fb0` 出现并且 `cat /sys/class/graphics/fb0/virtual_size` 显示 240,320,最后用 `cat /dev/urandom | sudo tee /dev/fb0` 验证数据通路。
+#
+第一层：overlay 和驱动文件存在？
+ls /boot/overlays/mipi-dbi-spi.dtbo
+modinfo panel-mipi-dbi
+        ↓
+第二层：probe 成功了吗？
+dmesg | grep panel-mipi-dbi
+        ↓
+第三层：framebuffer 设备出现了吗？
+ls /dev/fb0
+cat /sys/class/graphics/fb0/virtual_size  # 应该显示 240,320
+        ↓
+第四层：数据通路通吗？
+cat /dev/urandom | sudo tee /dev/fb0     # 屏幕应该出现雪花
+#
 - **⑤ 配成实际用途**:决定这块屏是做小桌面显示,还是只跑终端/信息面板,然后配置系统启动目标、自动登录或者展示程序。
 
 同样的五步,换屏/换系统的本质不变:
